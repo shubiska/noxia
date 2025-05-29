@@ -8,7 +8,17 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "command": ".vscode/build.bat",
+            "presentation": {
+                "echo": false,
+                "reveal": "silent",
+                "clear": true
+            },
+            "windows": {
+                "command": ".vscode/build.bat"
+            },
+            "linux": {
+                "command": ".vscode/build.sh"
+            },
         },
     ]
 }

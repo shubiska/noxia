@@ -14,6 +14,4 @@ typedef short int16;
 typedef int int32;
 typedef long long int64;
 
-typedef enum { None, CloseRequested } nWindowEvent;
-
 #endif // NOXIATYPE_H
