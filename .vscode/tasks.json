@@ -9,16 +9,10 @@
                 "isDefault": true
             },
             "presentation": {
-                "echo": false,
                 "reveal": "silent",
-                "clear": true
+                "panel": "shared",
             },
-            "windows": {
-                "command": ".vscode/build.bat"
-            },
-            "linux": {
-                "command": ".vscode/build.sh"
-            },
+             "command": "cmake -S . -B build; cmake --build build --config Release; ./build/Release/Window",
         },
     ]
 }

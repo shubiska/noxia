@@ -10,6 +10,7 @@ typedef struct {
 
     // window
     HWND nWindowHandle;
+    uint32 nWindowStyle;
 } nContext;
 
 #endif // NOXIASYSDEF_H

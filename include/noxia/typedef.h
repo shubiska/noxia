@@ -1,5 +1,5 @@
-#ifndef NOXIATYPE_H
-#define NOXIATYPE_H
+#ifndef NOXIATYPEDEF_H
+#define NOXIATYPEDEF_H
 
 #define null 0
 #define false 0
@@ -14,4 +14,4 @@ typedef short int16;
 typedef int int32;
 typedef long long int64;
 
-#endif // NOXIATYPE_H
+#endif // NOXIATYPEDEF_H

@@ -1,12 +1,19 @@
 #ifndef NOXIASYSWINDOW_H
 #define NOXIASYSWINDOW_H
+
 #include "sysdef.h"
+#include "sysdisplay.h"
 
 #define StyleWindowed WS_OVERLAPPEDWINDOW & ~(WS_SIZEBOX | WS_MAXIMIZEBOX)
+#define StyleBorderless WS_POPUP
 
 nContext *nWindowCreate();
 void nWindowEvents(nContext *context);
-void nWindowShow(nContext *context);
+void nWindowShow(nContext *context, bool visible);
+void nWindowSetTitle(nContext *context, char *title);
+void nWindowSetSize(nContext *context, uint32 width, uint32 height);
+void nWindowSetPosition(nContext *context, uint32 x, uint32 y);
+void nWindowCenter(nContext *context);
 void nWindowDestroy(nContext *context);
 LRESULT CALLBACK nWindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -17,7 +24,7 @@ static inline nContext *nWindowCreate() {
     windowClass.lpszClassName = "Noxia";
     RegisterClass(&windowClass);
 
-    HWND windowHandle = CreateWindowEx(0, windowClass.lpszClassName, "Noxia", StyleWindowed, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, NULL, windowClass.hInstance, null);
+    HWND windowHandle = CreateWindowEx(0, windowClass.lpszClassName, "Noxia", StyleWindowed, 0, 0, 0, 0, NULL, NULL, windowClass.hInstance, null);
     if (windowHandle == null) {
         return null;
     }
@@ -26,6 +33,10 @@ static inline nContext *nWindowCreate() {
     SetWindowLongPtr(windowHandle, GWLP_USERDATA, (LONG_PTR)context);
 
     context->nWindowHandle = windowHandle;
+    context->nWindowStyle = StyleWindowed;
+
+    nWindowSetSize(context, nDisplayGetWidth() / 2, nDisplayGetHeight() / 2);
+    nWindowCenter(context);
 
     return context;
 }
@@ -38,9 +49,37 @@ static void nWindowEvents(nContext *context) {
     }
 }
 
-static void nWindowShow(nContext *context) {
+static void nWindowShow(nContext *context, bool visible) {
     UpdateWindow(context->nWindowHandle);
-    ShowWindow(context->nWindowHandle, SW_SHOWNORMAL);
+    ShowWindow(context->nWindowHandle, visible);
+}
+
+static void nWindowSetTitle(nContext *context, char *title) {
+    SetWindowText(context->nWindowHandle, title);
+}
+
+static void nWindowSetSize(nContext *context, uint32 width, uint32 height) {
+    RECT rect = {0, 0, width, height};
+
+    AdjustWindowRectEx(&rect, context->nWindowStyle, FALSE, null);
+
+    width = rect.right - rect.left;
+    height = rect.bottom - rect.top;
+
+    SetWindowPos(context->nWindowHandle, null, null, null, width, height, SWP_NOMOVE | SWP_NOZORDER);
+}
+
+static void nWindowSetPosition(nContext *context, uint32 x, uint32 y) {
+    SetWindowPos(context->nWindowHandle, null, x, y, null, null, SWP_NOSIZE | SWP_NOZORDER);
+}
+static void nWindowCenter(nContext *context) {
+    RECT rect;
+    GetWindowRect(context->nWindowHandle, &rect);
+
+    uint32 x = (nDisplayGetWidth() - (rect.right - rect.left)) / 2;
+    uint32 y = (nDisplayGetHeight() - (rect.bottom - rect.top)) / 2;
+
+    SetWindowPos(context->nWindowHandle, null, x, y, null, null, SWP_NOSIZE | SWP_NOZORDER);
 }
 
 static void nWindowDestroy(nContext *context) {
