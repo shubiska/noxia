@@ -1,7 +1,7 @@
 #ifndef NOXIAMATH_H
 #define NOXIAMATH_H
 
-#include "typedef.h"
+#include "../noxia.h"
 
 uint64 nClampU(uint64 val, uint64 min, uint64 max);
 int64 nClampI(int64 val, int64 min, int64 max);

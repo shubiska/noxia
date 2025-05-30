@@ -23,5 +23,7 @@ void nContextSetTitle(nContext *context, char *title);
 void nContextSetSize(nContext *context, uint32 width, uint32 height);
 void nContextSetPosition(nContext *context, uint32 x, uint32 y);
 void nContextCenter(nContext *context);
+void nContextSetRate(nContext *context, uint32 rate);
+void nContextSetVsync(nContext *context, bool vsync);
 
 #endif // NOXIA_H

@@ -2,17 +2,47 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "build-lib",
             "type": "shell",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
+            "group": "build",
             "presentation": {
+                "echo": false,
                 "reveal": "silent",
-                "panel": "shared",
+                "panel": "shared"
             },
-             "command": "cmake -S . -B build; cmake --build build --config Release; ./build/Release/Window",
+            "command": "mkdir build; clang -c src/noxia.c -o build/noxia.obj -O2; llvm-lib /OUT:build/noxia.lib build/noxia.obj",
+        },
+        {
+            "label": "build-examples",
+            "type": "shell",
+            "group": "build",
+            "dependsOn": [
+                "build-lib",
+            ],
+            "presentation": {
+                "echo": false,
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "windows": {
+                "command": "clang --% examples/window.c build/noxia.lib -o build/window.exe \"@winNoxiaArgs.rsp\"",
+            },
+        },
+        {
+            "label": "build-all",
+            "type": "shell",
+            "group": "build",
+            "dependsOn": [
+                "build-examples"
+            ],
+            "presentation": {
+                "echo": false,
+                "reveal": "silent",
+                "panel": "shared"
+            },
+            "windows": {
+                "command": "./build/window.exe",
+            },
         },
     ]
 }

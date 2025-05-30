@@ -3,4 +3,7 @@ CompileFlags:
     - -std=c99
     - -x
     - c
+
+Diagnostics:
+  UnusedIncludes: None
     

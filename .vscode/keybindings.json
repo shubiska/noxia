@@ -1,6 +1,12 @@
 [
-  {
-    "key": "ctrl+alt+j",
-    "command": "workbench.action.tasks.build"
-  }
+    {
+        "key": "ctrl+alt+j",
+        "command": "workbench.action.tasks.runTask",
+        "args": "build-all"
+    },
+    {
+        "key": "ctrl+alt+k",
+        "command": "workbench.action.tasks.runTask",
+        "args": "build-lib"
+    }
 ]

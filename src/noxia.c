@@ -1,28 +1,28 @@
 #ifdef _WIN64
+#include "../include/noxia/win/sysgraphics.h"
+#include "../include/noxia/win/sysscheduler.h"
 #include "../include/noxia/win/syswindow.h"
 #endif
 
+#include "../include/noxia.h"
 #include "../include/noxia/math.h"
 #include <string.h>
 
-nContext *nContextCreate();
-void nContextEvents(nContext *context);
-void nContextClose(nContext *context);
-void nContextSetTitle(nContext *context, char *title);
-void nContextSetSize(nContext *context, uint32 width, uint32 height);
-void nContextSetPosition(nContext *context, uint32 x, uint32 y);
-void nContextCenter(nContext *context);
-
-nContext *nContextCreate() {
+static nContext *nContextCreate() {
     nContext *context = nWindowCreate();
     if (context == null) {
         return null;
     }
 
+    nGraphicsCreate(context);
+
+    nContextSetRate(context, nDisplayGetRate());
+    nContextSetVsync(context, true);
+
     return context;
 }
 
-void nContextEvents(nContext *context) {
+static void nContextEvents(nContext *context) {
     if (context == null) {
         return;
     }
@@ -30,17 +30,29 @@ void nContextEvents(nContext *context) {
     nWindowShow(context, true);
 
     while (!context->nContextClose) {
+        if (!context->nGraphicsVsync) {
+            nSchedulerCycleBegin(context);
+        }
+
         nWindowEvents(context);
 
         if (context->nContextCloseRequested) {
             nContextClose(context);
+        }
+
+        nGraphicsRenderBegin(context);
+
+        nGraphicsRenderEnd(context);
+
+        if (!context->nGraphicsVsync) {
+            nSchedulerCycleEnd(context);
         }
     }
 
     nWindowDestroy(context);
 }
 
-void nContextClose(nContext *context) {
+static void nContextClose(nContext *context) {
     if (context == null) {
         return;
     }
@@ -48,7 +60,7 @@ void nContextClose(nContext *context) {
     context->nContextClose = true;
 }
 
-void nContextSetTitle(nContext *context, char *title) {
+static void nContextSetTitle(nContext *context, char *title) {
     if (context == null) {
         return;
     }
@@ -60,7 +72,7 @@ void nContextSetTitle(nContext *context, char *title) {
     nWindowSetTitle(context, title);
 }
 
-void nContextSetSize(nContext *context, uint32 width, uint32 height) {
+static void nContextSetSize(nContext *context, uint32 width, uint32 height) {
     if (context == null) {
         return;
     }
@@ -71,7 +83,7 @@ void nContextSetSize(nContext *context, uint32 width, uint32 height) {
     nWindowSetSize(context, width, height);
 }
 
-void nContextSetPosition(nContext *context, uint32 x, uint32 y) {
+static void nContextSetPosition(nContext *context, uint32 x, uint32 y) {
     if (context == null) {
         return;
     }
@@ -82,10 +94,19 @@ void nContextSetPosition(nContext *context, uint32 x, uint32 y) {
     nWindowSetPosition(context, x, y);
 }
 
-void nContextCenter(nContext *context) {
+static void nContextCenter(nContext *context) {
     if (context == null) {
         return;
     }
 
     nWindowCenter(context);
+}
+
+static void nContextSetRate(nContext *context, uint32 rate) {
+    context->nSchedulerCycleRate = (uint32)nClampU(rate, 1, 360);
+}
+
+static void nContextSetVsync(nContext *context, bool vsync) {
+    context->nGraphicsVsync = vsync;
+    nGraphicsSetVsync(context, vsync);
 }

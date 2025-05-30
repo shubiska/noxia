@@ -1,16 +1,25 @@
 #ifndef NOXIASYSDEF_H
 #define NOXIASYSDEF_H
 
-#include "../typedef.h"
+#include "../../noxia.h"
 #include <Windows.h>
 
-typedef struct {
+struct nContext {
     bool nContextClose;
     bool nContextCloseRequested;
 
     // window
     HWND nWindowHandle;
+    HDC nWindowDeviceContext;
     uint32 nWindowStyle;
-} nContext;
+
+    // graphics
+    bool nGraphicsVsync;
+
+    // scheduler
+    LARGE_INTEGER nSchedulerFreq;
+    LARGE_INTEGER nSchedulerCycleStart;
+    uint32 nSchedulerCycleRate;
+};
 
 #endif // NOXIASYSDEF_H

@@ -1,0 +1,14 @@
+-O2
+-fuse-ld=lld
+-lmsvcrt
+-flto
+-ffunction-sections
+-fdata-sections
+-Wl,/OPT:REF
+-Wl,/DEBUG:NONE
+-Wl,/SUBSYSTEM:WINDOWS
+-Wl,/ENTRY:mainCRTStartup
+-luser32
+-lwinmm
+-lgdi32
+-lopengl32 
