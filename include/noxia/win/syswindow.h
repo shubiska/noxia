@@ -2,43 +2,40 @@
 #define NOXIASYSWINDOW_H
 
 #include "sysdef.h"
-#include "sysdisplay.h"
+#include <winuser.h>
 
 #define StyleWindowed WS_OVERLAPPEDWINDOW & ~(WS_SIZEBOX | WS_MAXIMIZEBOX)
-#define StyleBorderless WS_POPUP
+#define StyleBorderless WS_POPUPWINDOW
 
-nContext *nWindowCreate();
+bool nWindowCreate(nContext *context);
 void nWindowEvents(nContext *context);
 void nWindowShow(nContext *context, bool visible);
 void nWindowSetTitle(nContext *context, char *title);
 void nWindowSetSize(nContext *context, uint32 width, uint32 height);
 void nWindowSetPosition(nContext *context, uint32 x, uint32 y);
-void nWindowCenter(nContext *context);
+void nWindowCenter(nContext *context, u32Vector2 displaySize);
 void nWindowDestroy(nContext *context);
 LRESULT CALLBACK nWindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-nContext *nWindowCreate() {
+bool nWindowCreate(nContext *context) {
+    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE);
+
     WNDCLASS windowClass = {0};
     windowClass.lpfnWndProc = nWindowProcedure;
     windowClass.hInstance = GetModuleHandle(NULL);
     windowClass.lpszClassName = "Noxia";
     if (RegisterClass(&windowClass) == null) {
-        return null;
+        return false;
     }
 
     HWND windowHandle = CreateWindowEx(0, windowClass.lpszClassName, "Noxia", StyleWindowed, 0, 0, 0, 0, NULL, NULL, windowClass.hInstance, null);
     if (windowHandle == null) {
-        return null;
+        return false;
     }
 
     HDC deviceContext = GetDC(windowHandle);
     if (deviceContext == null) {
-        return null;
-    }
-
-    nContext *context = (nContext *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(nContext));
-    if (context == null) {
-        return null;
+        return false;
     }
 
     SetWindowLongPtr(windowHandle, GWLP_USERDATA, (LONG_PTR)context);
@@ -47,10 +44,7 @@ nContext *nWindowCreate() {
     context->nWindowDeviceContext = deviceContext;
     context->nWindowStyle = StyleWindowed;
 
-    nWindowSetSize(context, nDisplayGetWidth() / 2, nDisplayGetHeight() / 2);
-    nWindowCenter(context);
-
-    return context;
+    return true;
 }
 
 void nWindowEvents(nContext *context) {
@@ -59,6 +53,8 @@ void nWindowEvents(nContext *context) {
         TranslateMessage(&message);
         DispatchMessage(&message);
     }
+
+    context->nWindowFocused = GetFocus() != null;
 }
 
 void nWindowShow(nContext *context, bool visible) {
@@ -73,6 +69,9 @@ void nWindowSetTitle(nContext *context, char *title) {
 void nWindowSetSize(nContext *context, uint32 width, uint32 height) {
     RECT rect = {0, 0, width, height};
 
+    context->nWindowWidth = width;
+    context->nWindowHeight = height;
+
     AdjustWindowRectEx(&rect, context->nWindowStyle, FALSE, null);
 
     width = rect.right - rect.left;
@@ -84,12 +83,13 @@ void nWindowSetSize(nContext *context, uint32 width, uint32 height) {
 void nWindowSetPosition(nContext *context, uint32 x, uint32 y) {
     SetWindowPos(context->nWindowHandle, null, x, y, null, null, SWP_NOSIZE | SWP_NOZORDER);
 }
-void nWindowCenter(nContext *context) {
+
+void nWindowCenter(nContext *context, u32Vector2 displaySize) {
     RECT rect;
     GetWindowRect(context->nWindowHandle, &rect);
 
-    uint32 x = (nDisplayGetWidth() - (rect.right - rect.left)) / 2;
-    uint32 y = (nDisplayGetHeight() - (rect.bottom - rect.top)) / 2;
+    uint32 x = (displaySize.x - (rect.right - rect.left)) / 2;
+    uint32 y = (displaySize.y - (rect.bottom - rect.top)) / 2;
 
     SetWindowPos(context->nWindowHandle, null, x, y, null, null, SWP_NOSIZE | SWP_NOZORDER);
 }
@@ -103,8 +103,14 @@ static LRESULT CALLBACK nWindowProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LP
     nContext *context = (nContext *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
     switch (uMsg) {
+    case WM_ACTIVATE: {
+        if (LOWORD(lParam) != WA_ACTIVE) {
+            context->nWindowIsUnreachable = (MonitorFromWindow(context->nWindowHandle, MONITOR_DEFAULTTONULL) == null);
+        }
+        return 0;
+    }
     case WM_CLOSE: {
-        context->nContextCloseRequested = true;
+        context->CloseRequested = true;
         return 0;
     }
     case WM_DESTROY: {
